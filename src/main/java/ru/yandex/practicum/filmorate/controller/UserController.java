@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -25,8 +26,8 @@ public class UserController {
     }
 
     @PostMapping
-    public User addUser(@Valid @RequestBody User user) throws User.UserValidationException {
-        user.validate();
+    public User addUser(@Valid @RequestBody User user) {
+        validate(user);
         user.setId(++counterID);
         users.put(counterID,user);
         log.trace("Добавлен новый пользователь: {}, ID {}", user.getName(), counterID);
@@ -34,8 +35,8 @@ public class UserController {
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User user) throws User.UserValidationException, User.UserExistException {
-        user.validate();
+    public User updateUser(@Valid @RequestBody User user) {
+        validate(user);
         String login = user.getLogin();
         if (user.getName().isBlank()) {
             user.setName(login);
@@ -46,7 +47,27 @@ public class UserController {
             log.trace("Обновлены данные пользователя: {}, ID {}", user.getName(), counterID);
             return user;
         } else {
-            throw new User.UserExistException("Указанный пользователь не существует.");
+            throw new ValidationException("Указанный пользователь не существует.");
+        }
+    }
+
+    public void validate(User user) {
+        String name = user.getName();
+        String login = user.getLogin();
+        String email = user.getEmail();
+        LocalDate birthday = user.getBirthday();
+
+        if (name.isBlank()) {
+            user.setName(login);
+        }
+        if (email.isBlank() || !email.contains("@")) {
+            throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @.");
+        }
+        if (login.isBlank() || login.contains(" ")) {
+            throw new ValidationException("Логин не может быть пустым или содержать пробелы.");
+        }
+        if (birthday != null && birthday.isAfter(LocalDate.now())) {
+            throw new ValidationException("Дата рождения не может быть в будущем.");
         }
     }
 }

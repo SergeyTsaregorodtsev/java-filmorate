@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.controller.UserController;
+import ru.yandex.practicum.filmorate.controller.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.io.IOException;
@@ -12,16 +14,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
-public class UserTest {
+public class UserControllerTest {
+    UserController controller = new UserController();
 
     @Test
     void userIncorrectEmail(){
         User user = new User("wrong-email", "login", "name");
-        User.UserValidationException e = assertThrows(User.UserValidationException.class,
+        ValidationException e = assertThrows(ValidationException.class,
                 new Executable() {
                     @Override
                     public void execute() throws IOException, InterruptedException {
-                        user.validate();
+                        controller.validate(user);
                     }
                 });
         assertEquals("Электронная почта не может быть пустой и должна содержать символ @.", e.getMessage());
@@ -30,11 +33,11 @@ public class UserTest {
     @Test
     void userIncorrectLogin(){
         User user = new User("box@email.ru", "log in", "name");
-        User.UserValidationException e = assertThrows(User.UserValidationException.class,
+        ValidationException e = assertThrows(ValidationException.class,
                 new Executable() {
                     @Override
                     public void execute() throws IOException, InterruptedException {
-                        user.validate();
+                        controller.validate(user);
                     }
                 });
         assertEquals("Логин не может быть пустым или содержать пробелы.", e.getMessage());
@@ -43,7 +46,7 @@ public class UserTest {
     @Test
     void userEmptyName() {
         User user = new User("box@email.ru", "login", "");
-        user.validate();
+        controller.validate(user);
         assertEquals(user.getLogin(), user.getName());
     }
 
@@ -51,11 +54,11 @@ public class UserTest {
     void userIncorrectBirthday(){
         User user = new User("box@email.ru", "login", "name");
         user.setBirthday(LocalDate.MAX);
-        User.UserValidationException e = assertThrows(User.UserValidationException.class,
+        ValidationException e = assertThrows(ValidationException.class,
                 new Executable() {
                     @Override
                     public void execute() throws IOException, InterruptedException {
-                        user.validate();
+                        controller.validate(user);
                     }
                 });
         assertEquals("Дата рождения не может быть в будущем.", e.getMessage());
