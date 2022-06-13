@@ -2,48 +2,71 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 
 @RestController
 @RequestMapping("/films")
 public class FilmController {
 
-    private int counterID;
-    private final HashMap<Integer,Film> films = new HashMap<>();
+    private final FilmService filmService;
     private final static Logger log = LoggerFactory.getLogger(FilmController.class);
 
+    @Autowired
+    public FilmController (FilmService filmService) {
+        this.filmService = filmService;
+    }
+
     @GetMapping
-    public HashSet<Film> getFilms(){
-        HashSet<Film> filmSet = new HashSet<>(films.values());
-        log.trace("Количество фильмов в списке: {}", filmSet.size());
-        return filmSet;
+    public List<Film> getFilms(){
+        log.trace("Получен GET-запрос на список фильмов.");
+        return filmService.getFilms();
+    }
+
+    @GetMapping("/{filmId}")
+    public Film getFilm(@PathVariable int filmId) {
+        log.trace("Получен GET-запрос на фильм ID {}.", filmId);
+        return filmService.getFilm(filmId);
     }
 
     @PostMapping
     public Film addFilm(@RequestBody Film film) {
+        log.trace("Получен POST-запрос на добавление фильма {}.", film.getName());
         validate(film);
-        film.setId(++counterID);
-        films.put(counterID, film);
-        log.trace("Добавлен новый фильм: {}, ID {}", film.getName(), counterID);
-        return film;
+        return filmService.addFilm(film);
     }
 
     @PutMapping
     public Film updateFilm(@RequestBody Film film) {
+        log.trace("Получен PUT-запрос на обновление фильма {}.", film.getName());
         validate(film);
-        int filmID = film.getId();
-        if (films.containsKey(filmID)) {
-            films.put(filmID, film);
-            log.trace("Обновлены данные фильма: {}, ID {}", film.getName(), counterID);
-            return film;
-        } else {
-            throw new ValidationException("Указанного фильма нет в списке.");
-        }
+        return filmService.updateFilm(film);
+    }
+
+    @PutMapping("{filmId}/like/{userId}")
+    public void addLike(@PathVariable int filmId,
+                        @PathVariable int userId) {
+        log.trace("Получен PUT-запрос на добавления лайка фильму ID {} от пользователя ID {}.", filmId, userId);
+        filmService.addLike(filmId, userId);
+    }
+
+    @DeleteMapping("{filmId}/like/{userId}")
+    public void removeLike(@PathVariable int filmId,
+                        @PathVariable int userId) {
+        log.trace("Получен DELETE-запрос на удаление лайка фильму ID {} от пользователя ID {}.", filmId, userId);
+        filmService.removeLike(filmId, userId);
+    }
+
+    @GetMapping("popular")
+    public List<Film> getFavoriteFilms(@RequestParam(value = "count", defaultValue = "10", required = false) int count){
+        log.trace("Получен GET-запрос на получение первых {} фильмов по количеству лайков.", count);
+        return filmService.getFavoriteFilms(count);
     }
 
     public void validate(Film film) {

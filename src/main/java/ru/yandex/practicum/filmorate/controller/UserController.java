@@ -1,54 +1,80 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
-
-    private int counterID;
-    private final HashMap<Integer, User> users = new HashMap<>();
+    private final UserService userService;
     private final static Logger log = LoggerFactory.getLogger(UserController.class);
 
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
     @GetMapping
-    public HashSet<User> getUsers(){
-        HashSet<User> userSet = new HashSet<>(users.values());
-        log.trace("Количество пользователей в текущий момент: {}", userSet.size());
-        return userSet;
+    public List<User> getUsers(){
+        log.trace("Получен GET-запрос на список пользователей.");
+        return userService.getUsers();
+    }
+
+    @GetMapping("/{userId}")
+    public User getUser(@PathVariable int userId) {
+        log.trace("Получен GET-запрос на пользователя ID {}.", userId);
+        return userService.getUser(userId);
     }
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
+        log.trace("Получен POST-запрос на добавление пользователя {}.", user.getName());
         validate(user);
-        user.setId(++counterID);
-        users.put(counterID,user);
-        log.trace("Добавлен новый пользователь: {}, ID {}", user.getName(), counterID);
-        return user;
+        return userService.addUser(user);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
+        log.trace("Получен PUT-запрос на обновление пользователя {}.", user.getName());
         validate(user);
-        String login = user.getLogin();
-        if (user.getName().isBlank()) {
-            user.setName(login);
-        }
-        int userID = user.getId();
-        if (users.containsKey(userID)) {
-            users.put(userID, user);
-            log.trace("Обновлены данные пользователя: {}, ID {}", user.getName(), counterID);
-            return user;
-        } else {
-            throw new ValidationException("Указанный пользователь не существует.");
-        }
+        return userService.updateUser(user);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable int id,
+                          @PathVariable int friendId) {
+        log.trace("Получен PUT-запрос на добавление в друзья ID {}.", friendId);
+        userService.addFriend(id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable int id,
+                             @PathVariable int friendId) {
+        log.trace("Получен DELETE-запрос на удаление из друзей ID {}.", friendId);
+        userService.removeFriend(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public Set<User> getFriends(@PathVariable int id) {
+        log.trace("Получен GET-запрос на получение списка друзей ID {}.", id);
+        return userService.getFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Set<User> getCommonFriends(@PathVariable int id,
+                                      @PathVariable int otherId) {
+        log.trace("Получен GET-запрос на получение списка общих друзей ID {} и ID {}.", id, otherId);
+        return userService.getCommonFriends(id, otherId);
     }
 
     public void validate(User user) {
