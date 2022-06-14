@@ -10,6 +10,7 @@ import lombok.NonNull;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PastOrPresent;
+import javax.validation.constraints.Pattern;
 
 @Data
 public class User {
@@ -17,7 +18,7 @@ public class User {
     @Email
     @NotBlank(message = "Электронная почта не может быть пустой.")
     private final String email;
-    @NotBlank
+    @NotBlank @Pattern(regexp = "^\\S*$")   // Любое количество непробельных символов
     private final String login;
     @NonNull
     private String name;

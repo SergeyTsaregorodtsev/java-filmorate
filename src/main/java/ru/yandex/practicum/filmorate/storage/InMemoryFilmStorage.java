@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -11,20 +10,20 @@ import java.util.HashMap;
 import java.util.List;
 
 @Component
+@Slf4j
 public class InMemoryFilmStorage implements FilmStorage{
     private int counter;
     private final HashMap<Integer, Film> films = new HashMap<>();
-    private final static Logger log = LoggerFactory.getLogger(InMemoryFilmStorage.class);
 
     @Override
-    public List<Film> getFilms(){
+    public List<Film> get(){
         List<Film> filmSet = new ArrayList<>(films.values());
         log.trace("Запрос по списку фильмов - DONE. Количество фильмов в списке: {}", filmSet.size());
         return filmSet;
     }
 
     @Override
-    public Film getFilmById(int filmId) {
+    public Film getById(int filmId) {
         if (films.containsKey(filmId)) {
             log.trace("Запрос по фильму ID {} - DONE", filmId);
             return films.get(filmId);
@@ -34,7 +33,7 @@ public class InMemoryFilmStorage implements FilmStorage{
     }
 
     @Override
-    public Film addFilm(Film film) {
+    public Film add(Film film) {
         film.setId(++counter);
         films.put(counter, film);
         log.trace("Добавлен новый фильм: {}, ID {}", film.getName(), counter);
@@ -42,7 +41,12 @@ public class InMemoryFilmStorage implements FilmStorage{
     }
 
     @Override
-    public Film updateFilm(Film film) {
+    public Film remove(int filmId) {
+        return films.remove(filmId);
+    }
+
+    @Override
+    public Film update(Film film) {
         int filmId = film.getId();
         if (films.containsKey(filmId)) {
             films.put(filmId, film);

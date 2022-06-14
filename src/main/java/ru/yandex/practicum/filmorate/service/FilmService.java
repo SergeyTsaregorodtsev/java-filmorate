@@ -1,12 +1,10 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -14,10 +12,10 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@Slf4j
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private final static Logger log = LoggerFactory.getLogger(FilmService.class);
 
     @Autowired
     public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
@@ -25,45 +23,25 @@ public class FilmService {
         this.userStorage = userStorage;
     }
 
-    public List<Film> getFilms() {
-        log.trace("Запрос на получение списка фильмов отправлен в хранилище.");
-        return filmStorage.getFilms();
-    }
-
-    public Film getFilm(int filmId) {
-        log.trace("Запрос на получение фильма ID {} отправлен в хранилище.", filmId);
-        return filmStorage.getFilmById(filmId);
-    }
-
-    public Film addFilm(Film film) {
-        log.trace("Запрос на добавление фильма {} отправлен в хранилище.", film.getName());
-        return filmStorage.addFilm(film);
-    }
-
-    public Film updateFilm(Film film) {
-        log.trace("Запрос на обновление фильма {} отправлен в хранилище.", film.getName());
-        return filmStorage.updateFilm(film);
-    }
-
     public void addLike(int filmId, int userId) {
-        Film film = filmStorage.getFilmById(filmId);
-        if (userStorage.getUserById(userId) != null) {
+        Film film = filmStorage.getById(filmId);
+        if (userStorage.getById(userId) != null) {
             film.getLikes().add(userId);
         }
         log.trace("Запрос на добавление лайка от пользователя ID {} - DONE.", userId);
     }
 
     public void removeLike(int filmId, int userId) {
-        Film film = filmStorage.getFilmById(filmId);
+        Film film = filmStorage.getById(filmId);
         Set<Integer> likes = film.getLikes();
-        if (userStorage.getUserById(userId) != null) {
+        if (userStorage.getById(userId) != null) {
             likes.remove(userId);
             log.trace("Запрос на удаление лайка от пользователя ID {} - DONE.", userId);
         }
     }
 
     public List<Film> getFavoriteFilms(int count) {
-        List<Film> favoriteFilms = new ArrayList<>(filmStorage.getFilms());
+        List<Film> favoriteFilms = new ArrayList<>(filmStorage.get());
         if (count >= favoriteFilms.size()) {
             count = favoriteFilms.size();
         }

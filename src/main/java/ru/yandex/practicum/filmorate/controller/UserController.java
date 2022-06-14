@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -14,40 +14,42 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
+@Slf4j
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
-    private final static Logger log = LoggerFactory.getLogger(UserController.class);
+    private final UserStorage userStorage;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserStorage userStorage) {
         this.userService = userService;
+        this.userStorage = userStorage;
     }
 
     @GetMapping
     public List<User> getUsers(){
         log.trace("Получен GET-запрос на список пользователей.");
-        return userService.getUsers();
+        return userStorage.get();
     }
 
     @GetMapping("/{userId}")
     public User getUser(@PathVariable int userId) {
         log.trace("Получен GET-запрос на пользователя ID {}.", userId);
-        return userService.getUser(userId);
+        return userStorage.getById(userId);
     }
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
         log.trace("Получен POST-запрос на добавление пользователя {}.", user.getName());
         validate(user);
-        return userService.addUser(user);
+        return userStorage.add(user);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
         log.trace("Получен PUT-запрос на обновление пользователя {}.", user.getName());
         validate(user);
-        return userService.updateUser(user);
+        return userStorage.update(user);
     }
 
     @PutMapping("/{id}/friends/{friendId}")

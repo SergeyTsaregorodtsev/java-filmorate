@@ -1,52 +1,53 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @RestController
+@Slf4j
 @RequestMapping("/films")
 public class FilmController {
-
     private final FilmService filmService;
-    private final static Logger log = LoggerFactory.getLogger(FilmController.class);
+    private final FilmStorage filmStorage;
 
     @Autowired
-    public FilmController (FilmService filmService) {
+    public FilmController (FilmService filmService, FilmStorage filmStorage) {
         this.filmService = filmService;
+        this.filmStorage = filmStorage;
     }
 
     @GetMapping
     public List<Film> getFilms(){
         log.trace("Получен GET-запрос на список фильмов.");
-        return filmService.getFilms();
+        return filmStorage.get();
     }
 
     @GetMapping("/{filmId}")
     public Film getFilm(@PathVariable int filmId) {
         log.trace("Получен GET-запрос на фильм ID {}.", filmId);
-        return filmService.getFilm(filmId);
+        return filmStorage.getById(filmId);
     }
 
     @PostMapping
     public Film addFilm(@RequestBody Film film) {
         log.trace("Получен POST-запрос на добавление фильма {}.", film.getName());
         validate(film);
-        return filmService.addFilm(film);
+        return filmStorage.add(film);
     }
 
     @PutMapping
     public Film updateFilm(@RequestBody Film film) {
         log.trace("Получен PUT-запрос на обновление фильма {}.", film.getName());
         validate(film);
-        return filmService.updateFilm(film);
+        return filmStorage.update(film);
     }
 
     @PutMapping("{filmId}/like/{userId}")

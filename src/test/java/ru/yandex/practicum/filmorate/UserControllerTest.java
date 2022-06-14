@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class UserControllerTest {
     UserStorage userStorage = new InMemoryUserStorage();
     UserService userService = new UserService(userStorage);
-    UserController controller = new UserController(userService);
+    UserController controller = new UserController(userService, userStorage);
 
     @Test
     void userIncorrectEmail(){

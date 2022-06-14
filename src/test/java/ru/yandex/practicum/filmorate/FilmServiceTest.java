@@ -1,10 +1,8 @@
 package ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.service.*;
 import ru.yandex.practicum.filmorate.storage.*;
 
 import java.time.LocalDate;
@@ -16,22 +14,21 @@ public class FilmServiceTest {
     FilmStorage filmStorage = new InMemoryFilmStorage();
     UserStorage userStorage = new InMemoryUserStorage();
     FilmService filmService = new FilmService(filmStorage, userStorage);
-    UserService userService = new UserService(userStorage);
 
     @Test
     void getFavoriteFilms(){
         List<Film> favoriteFilms;
         Film film1 = new Film("Name1", LocalDate.of(1995,12,27));
-        filmService.addFilm(film1);
+        filmStorage.add(film1);
         Film film2 = new Film("Name2", LocalDate.of(1995,12,27));
-        filmService.addFilm(film2);
+        filmStorage.add(film2);
         Film film3 = new Film("Name3", LocalDate.of(1995,12,27));
-        filmService.addFilm(film3);
+        filmStorage.add(film3);
 
         User user1 = new User("box1@email.ru", "login1", "name1");
-        userService.addUser(user1);
+        userStorage.add(user1);
         User user2 = new User("box2@email.ru", "login2", "name2");
-        userService.addUser(user2);
+        userStorage.add(user2);
         filmService.addLike(2,1);
         favoriteFilms = filmService.getFavoriteFilms(1);
         assertEquals("Name2", favoriteFilms.get(0).getName(),

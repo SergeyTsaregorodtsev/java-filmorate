@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -11,19 +10,19 @@ import java.util.HashMap;
 import java.util.List;
 
 @Component
+@Slf4j
 public class InMemoryUserStorage implements UserStorage{
     private int counter;
     private final HashMap<Integer, User> users = new HashMap<>();
-    private final static Logger log = LoggerFactory.getLogger(InMemoryUserStorage.class);
 
-    public List<User> getUsers(){
+    public List<User> get(){
         List<User> userSet = new ArrayList<>(users.values());
         log.trace("Запрос по списку пользователей - DONE. Количество пользователей в списке: {}", userSet.size());
         return userSet;
     }
 
     @Override
-    public User getUserById(int userId) {
+    public User getById(int userId) {
         if (users.containsKey(userId)) {
             log.trace("Запрос по пользователю ID {} - DONE", userId);
             return users.get(userId);
@@ -33,7 +32,7 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     @Override
-    public User addUser(User user) {
+    public User add(User user) {
         user.setId(++counter);
         users.put(counter,user);
         log.trace("Добавлен новый пользователь: {}, ID {}", user.getName(), counter);
@@ -41,7 +40,13 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     @Override
-    public User updateUser(User user) {
+    public User remove(int userId) {
+        log.trace("Удалён пользователь ID {}", userId);
+        return users.remove(userId);
+    }
+
+    @Override
+    public User update(User user) {
         int userId = user.getId();
         if (users.containsKey(userId)) {
             users.put(userId, user);

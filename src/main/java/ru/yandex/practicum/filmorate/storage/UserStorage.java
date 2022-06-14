@@ -8,11 +8,13 @@ import java.util.List;
 
 public interface UserStorage {
 
-    List<User> getUsers();
+    List<User> get();
 
-    User getUserById(int userId);
+    User getById(int userId);
 
-    User addUser(@Valid @RequestBody User user);
+    User add(@Valid @RequestBody User user);
 
-    User updateUser(@Valid @RequestBody User user);
+    User remove(int userId);
+
+    User update(@Valid @RequestBody User user);
 }
