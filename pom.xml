@@ -52,6 +52,19 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- основные зависимости Spring JDBC и класс автоконфигурации для Spring Boot -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jdbc</artifactId>
+		</dependency>
+
+		<!-- драйвер для работы с PostreSQL -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.3.3</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
