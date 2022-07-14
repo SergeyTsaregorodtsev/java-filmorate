@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -17,8 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 public class FilmControllerTest {
-    FilmStorage filmStorage = new InMemoryFilmStorage();
-    UserStorage userStorage = new InMemoryUserStorage();
+    JdbcTemplate jdbcTemplate = new JdbcTemplate();
+    FilmStorage filmStorage = new FilmDbStorage(jdbcTemplate);
+    UserStorage userStorage = new UserDbStorage(jdbcTemplate);
     FilmService filmService = new FilmService(filmStorage, userStorage);
     FilmController controller = new FilmController(filmService, filmStorage);
 

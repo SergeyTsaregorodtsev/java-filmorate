@@ -2,12 +2,12 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -19,7 +19,8 @@ public class FilmController {
     private final FilmStorage filmStorage;
 
     @Autowired
-    public FilmController (FilmService filmService, FilmStorage filmStorage) {
+    public FilmController (FilmService filmService,
+                           @Qualifier("filmDbStorage") FilmStorage filmStorage) {
         this.filmService = filmService;
         this.filmStorage = filmStorage;
     }
@@ -27,7 +28,7 @@ public class FilmController {
     @GetMapping
     public List<Film> getFilms(){
         log.trace("Получен GET-запрос на список фильмов.");
-        return filmStorage.get();
+        return filmStorage.getAll();
     }
 
     @GetMapping("/{filmId}")
@@ -65,9 +66,9 @@ public class FilmController {
     }
 
     @GetMapping("popular")
-    public List<Film> getFavoriteFilms(@RequestParam(value = "count", defaultValue = "10", required = false) int count){
+    public List<Film> getFavorite(@RequestParam(value = "count", defaultValue = "10", required = false) int count){
         log.trace("Получен GET-запрос на получение первых {} фильмов по количеству лайков.", count);
-        return filmService.getFavoriteFilms(count);
+        return filmService.getFavorite(count);
     }
 
     public void validate(Film film) {

@@ -1,14 +1,9 @@
 package ru.yandex.practicum.filmorate.model;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import java.util.*;
 import lombok.Data;
 import lombok.NonNull;
-
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PastOrPresent;
@@ -26,6 +21,5 @@ public class User {
     private String name;
     @PastOrPresent(message = "Дата рождения не может быть в будущем.")
     private LocalDate birthday;
-    private final Set<Integer> friends = new HashSet<>();
-    private final Map<Integer,FriendStatus> friendStatus = new HashMap<>();
+    private List<Integer> friends = new ArrayList<>();
 }

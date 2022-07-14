@@ -3,12 +3,12 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.yandex.practicum.filmorate.controller.UserController;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import org.springframework.jdbc.core.JdbcTemplate;
+import ru.yandex.practicum.filmorate.controller.*;
+import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.service.*;
+import ru.yandex.practicum.filmorate.storage.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -18,7 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 public class UserControllerTest {
-    UserStorage userStorage = new InMemoryUserStorage();
+    JdbcTemplate jdbcTemplate = new JdbcTemplate();
+    UserStorage userStorage = new UserDbStorage(jdbcTemplate);
     UserService userService = new UserService(userStorage);
     UserController controller = new UserController(userService, userStorage);
 

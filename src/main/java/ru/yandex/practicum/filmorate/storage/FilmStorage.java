@@ -1,19 +1,31 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import org.springframework.web.bind.annotation.RequestBody;
-import ru.yandex.practicum.filmorate.model.Film;
-
+import ru.yandex.practicum.filmorate.model.*;
 import java.util.List;
 
 public interface FilmStorage {
 
-    List<Film> get();
+    List<Film> getAll();
 
     Film getById(int filmId);
 
-    Film add(@RequestBody Film film);
+    Film add(Film film);
 
     Film remove(int filmId);
 
-    Film update(@RequestBody Film film);
+    Film update(Film film);
+
+    List<Film> getFavorite(int count);
+
+    List<Mpa> getAllMpa();
+
+    Mpa getMpa(int mpaId);
+
+    List<Genre> getAllGenres();
+
+    Genre getGenre(int genreId);
+
+    void addLike(int filmId, int userId);
+
+    void removeLike(int filmId, int userId);
 }
