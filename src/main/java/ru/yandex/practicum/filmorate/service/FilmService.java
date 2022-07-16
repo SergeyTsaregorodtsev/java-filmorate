@@ -4,9 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -31,6 +33,7 @@ public class FilmService {
     }
 
     public Film add(Film film) {
+        validate(film);
         return filmStorage.add(film);
     }
 
@@ -41,6 +44,7 @@ public class FilmService {
     }
 
     public Film update(Film film) {
+        validate(film);
         return filmStorage.update(film);
     }
 
@@ -75,5 +79,16 @@ public class FilmService {
         List<Film> favorite = filmStorage.getFavorite(count);
         log.trace("Запрос на получение {} фильмов с наибольшим количеством лайков - DONE.", count);
         return favorite;
+    }
+
+    public void validate(Film film) {
+        String description = film.getDescription();
+        LocalDate releaseDate = film.getReleaseDate();
+        if (description == null) {
+            film.setDescription("");
+        }
+        if (releaseDate.isBefore(LocalDate.of(1895,12,28))) {
+            throw new ValidationException("Дата релиза - не раньше 28 декабря 1895 года.");
+        }
     }
 }

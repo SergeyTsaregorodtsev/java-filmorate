@@ -215,30 +215,31 @@ public class FilmDbStorage implements FilmStorage{
     }
 
     private Film createFilm(ResultSet rs) throws SQLException {
-        Film film = new Film(rs.getInt("film_id"),
+        return new Film(rs.getInt("film_id"),
                 rs.getString("name"),
                 rs.getString("description"),
                 rs.getDate("release_date").toLocalDate(),
                 rs.getInt("duration"),
                 applyGenres(rs.getInt("film_id")),
                 applyMpa(rs.getInt("mpa_id")));
-        return film;
     }
 
     private Mpa applyMpa(int mpaId) {
         String sqlQuery = "SELECT * FROM MPA WHERE mpa_id = ?";
-        final List<Mpa> mpa = jdbcTemplate.query(sqlQuery, new RowMapper<Mpa>() {
-            @Override
-            public Mpa mapRow(ResultSet rs, int rowNum) throws SQLException {
-                log.trace("Фильму присовен рейтинг MPA {} {}.", mpaId, rs.getString("name"));
-                return new Mpa(mpaId, rs.getString("name"));
-            }
-        }, mpaId);
-        if (mpa.size() != 1) {
+        Mpa mpa;
+        try {
+            mpa = jdbcTemplate.queryForObject(sqlQuery, new RowMapper<Mpa>() {
+                @Override
+                public Mpa mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    log.trace("Фильму присовен рейтинг MPA {} {}.", mpaId, rs.getString("name"));
+                    return new Mpa(mpaId, rs.getString("name"));
+                }
+            }, mpaId);
+        } catch (EmptyResultDataAccessException e) {
             log.info("Рейтинг MPA с идентификатором {} не найден.", mpaId);
-            throw new FilmNotFoundException(String.format("Рейтинг ID %d не найден", mpaId));
+            throw new InvalidParameterException("Рейтинг MPA");
         }
-        return mpa.get(0);
+        return mpa;
     }
 
     private Set<Genre> applyGenres(int filmId) {

@@ -174,13 +174,12 @@ public class UserDbStorage implements UserStorage{
     }
 
     private User createUser(ResultSet rs) throws SQLException {
-        User user = new User(rs.getInt("user_id"),
+        return new User(rs.getInt("user_id"),
                 rs.getString("email"),
-                             rs.getString("login"),
-                             rs.getString("name"),
+                rs.getString("login"),
+                rs.getString("name"),
                 rs.getDate("birthday").toLocalDate(),
                 applyFriends(rs.getInt("user_id")));
-        return user;
     }
 
     private List<Integer> applyFriends (int userId) {

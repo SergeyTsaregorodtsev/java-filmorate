@@ -11,7 +11,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class Film {
     private int id;
-    @NotBlank
+    @NotBlank(message = "Название фильма не может быть пустым.")
     @NotNull
     private String name;
     @Size(max = 200, message = "Максимальная длина описания - 200 символов.")

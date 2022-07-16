@@ -32,6 +32,7 @@ public class UserService {
     }
 
     public User add(User user) {
+        validate(user);
         User newUser = userStorage.add(user);
         log.trace("Запрос на добавление пользователя ID {} - DONE.", newUser.getId());
         return newUser;
@@ -44,6 +45,7 @@ public class UserService {
     }
 
     public User update(User user) {
+        validate(user);
         User updatedUser = userStorage.update(user);
         log.trace("Запрос на обновление пользователя ID {} - DONE.", updatedUser.getId());
         return updatedUser;
@@ -69,5 +71,13 @@ public class UserService {
         List<User> commonFriends = userStorage.getCommonFriends(userId, otherId);
         log.trace("Запрос на список общих друзей ID {} и ID {} - DONE.", userId, otherId);
         return commonFriends;
+    }
+
+    public void validate(User user) {
+        String name = user.getName();
+        String login = user.getLogin();
+        if (name.isBlank()) {
+            user.setName(login);
+        }
     }
 }

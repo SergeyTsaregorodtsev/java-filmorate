@@ -1,72 +1,59 @@
 package ru.yandex.practicum.filmorate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
-import ru.yandex.practicum.filmorate.controller.*;
-import ru.yandex.practicum.filmorate.exception.*;
-import ru.yandex.practicum.filmorate.model.*;
-import ru.yandex.practicum.filmorate.service.*;
-import ru.yandex.practicum.filmorate.storage.*;
+import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.io.IOException;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.yandex.practicum.filmorate.controller.UserController;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+
 import java.time.LocalDate;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 public class UserControllerTest {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate();
-    UserStorage userStorage = new UserDbStorage(jdbcTemplate);
-    UserService userService = new UserService(userStorage);
-    UserController controller = new UserController(userService);
+    UserService service;
+    UserController controller;
+    MockMvc mvc;
+    ObjectMapper mapper;
 
-    @Test
-    void userIncorrectEmail(){
-        User user = new User(1,"wrong-email", "login", "name", LocalDate.now(), null);
-        ValidationException e = assertThrows(ValidationException.class,
-                new Executable() {
-                    @Override
-                    public void execute() throws IOException, InterruptedException {
-                        controller.validate(user);
-                    }
-                });
-        assertEquals("Электронная почта не может быть пустой и должна содержать символ @.", e.getMessage());
+    @Autowired
+    public UserControllerTest(UserService service, UserController controller, MockMvc mvc, ObjectMapper mapper) {
+        this.service = service;
+        this.controller = controller;
+        this.mvc = mvc;
+        this.mapper = mapper;
     }
 
+    @DisplayName("Проверка на создание пользователя")
+    @DirtiesContext
     @Test
-    void userIncorrectLogin(){
-        User user = new User(1, "box@email.ru", "log in", "name", LocalDate.now(), null);
-        ValidationException e = assertThrows(ValidationException.class,
-                new Executable() {
-                    @Override
-                    public void execute() throws IOException, InterruptedException {
-                        controller.validate(user);
-                    }
-                });
-        assertEquals("Логин не может быть пустым или содержать пробелы.", e.getMessage());
+    public void testAddUser () throws Exception {
+        User user1 = new User (0,"1@mail.ru", "1", "name1", LocalDate.now(), null);
+        postWithOkRequest (user1, "/users");
+        List<User> users = service.getAll ();
+        Assertions.assertEquals (1, users.size ());
     }
 
-    @Test
-    void userEmptyName() {
-        User user = new User(1,"box@email.ru", "login", "", LocalDate.now(), null);
-        controller.validate(user);
-        assertEquals(user.getLogin(), user.getName());
-    }
-
-    @Test
-    void userIncorrectBirthday(){
-        User user = new User(1,"box@email.ru", "login", "name", LocalDate.now(), null);
-        user.setBirthday(LocalDate.MAX);
-        ValidationException e = assertThrows(ValidationException.class,
-                new Executable() {
-                    @Override
-                    public void execute() throws IOException, InterruptedException {
-                        controller.validate(user);
-                    }
-                });
-        assertEquals("Дата рождения не может быть в будущем.", e.getMessage());
+    //Отправка Post запроса с ожиданием кода 200
+    private <T> void postWithOkRequest (T object, String path) throws Exception {
+        mvc.perform(MockMvcRequestBuilders.post(path)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(object)))
+                .andExpect(status().isOk())
+                .andReturn();
     }
 }
