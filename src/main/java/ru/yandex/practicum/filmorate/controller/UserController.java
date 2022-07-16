@@ -1,13 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.*;
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -17,39 +16,42 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
-    private final UserStorage userStorage;
 
     @Autowired
-    public UserController(UserService userService,
-                          @Qualifier("userDbStorage") UserStorage userStorage) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.userStorage = userStorage;
     }
 
     @GetMapping
     public List<User> getUsers(){
         log.trace("Получен GET-запрос на список пользователей.");
-        return userStorage.getAll();
+        return userService.getAll();
     }
 
     @GetMapping("/{userId}")
     public User getUser(@PathVariable int userId) {
         log.trace("Получен GET-запрос на пользователя ID {}.", userId);
-        return userStorage.getById(userId);
+        return userService.getById(userId);
     }
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
         log.trace("Получен POST-запрос на добавление пользователя {}.", user.getName());
         validate(user);
-        return userStorage.add(user);
+        return userService.add(user);
+    }
+
+    @DeleteMapping("/{userId}")
+    public void remove(@PathVariable int userId) {
+        log.trace("Получен DELETE-запрос на удаление пользователя ID {}.", userId);
+        userService.remove(userId);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
         log.trace("Получен PUT-запрос на обновление пользователя {}.", user.getName());
         validate(user);
-        return userStorage.update(user);
+        return userService.update(user);
     }
 
     @PutMapping("/{id}/friends/{friendId}")

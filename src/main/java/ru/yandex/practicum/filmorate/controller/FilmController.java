@@ -2,12 +2,10 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -16,39 +14,42 @@ import java.util.List;
 @RequestMapping("/films")
 public class FilmController {
     private final FilmService filmService;
-    private final FilmStorage filmStorage;
 
     @Autowired
-    public FilmController (FilmService filmService,
-                           @Qualifier("filmDbStorage") FilmStorage filmStorage) {
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
-        this.filmStorage = filmStorage;
     }
 
     @GetMapping
     public List<Film> getFilms(){
         log.trace("Получен GET-запрос на список фильмов.");
-        return filmStorage.getAll();
+        return filmService.getAll();
     }
 
     @GetMapping("/{filmId}")
     public Film getFilm(@PathVariable int filmId) {
         log.trace("Получен GET-запрос на фильм ID {}.", filmId);
-        return filmStorage.getById(filmId);
+        return filmService.getById(filmId);
     }
 
     @PostMapping
     public Film addFilm(@RequestBody Film film) {
         log.trace("Получен POST-запрос на добавление фильма {}.", film.getName());
         validate(film);
-        return filmStorage.add(film);
+        return filmService.add(film);
+    }
+
+    @DeleteMapping("/{filmId}")
+    public void remove(@PathVariable int filmId) {
+        log.trace("Получен DELETE-запрос на удаление фильма ID {}.", filmId);
+        filmService.remove(filmId);
     }
 
     @PutMapping
     public Film updateFilm(@RequestBody Film film) {
         log.trace("Получен PUT-запрос на обновление фильма {}.", film.getName());
         validate(film);
-        return filmStorage.update(film);
+        return filmService.update(film);
     }
 
     @PutMapping("{filmId}/like/{userId}")

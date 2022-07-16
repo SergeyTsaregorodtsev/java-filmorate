@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.storage;
+
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -8,6 +10,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
@@ -36,17 +39,19 @@ public class UserDbStorage implements UserStorage{
     @Override
     public User getById(int id) {
         final String sqlQuery = "SELECT * FROM USERS WHERE user_id = ?";
-        final List<User> users = jdbcTemplate.query(sqlQuery, new RowMapper<User>() {
-            @Override
-            public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-                return createUser(rs);
-            }
-        }, id);
-        if (users.size() != 1) {
+        User user;
+        try {
+            user = jdbcTemplate.queryForObject(sqlQuery, new RowMapper<User>() {
+                @Override
+                public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    return createUser(rs);
+                }
+            }, id);
+        } catch (EmptyResultDataAccessException e) {
             log.info("Пользователь с идентификатором {} не найден.", id);
             throw new UserNotFoundException(String.format("Пользователь ID %d не найден.", id));
         }
-        return users.get(0);
+        return user;
     }
 
     @Override
@@ -75,12 +80,22 @@ public class UserDbStorage implements UserStorage{
 
     @Override
     public User remove(int userId) {
-        return null;
+        User user = getById(userId);
+        String[] sqlQuery = {
+                "DELETE FROM film_likes WHERE USER_ID = ?",     // Из таблицы FILM_LIKES
+                "DELETE FROM friends WHERE USER_ID = ?",        // Из таблицы FRIENDS
+                "DELETE FROM friends WHERE FRIEND_ID = ?",      // Из таблицы FRIENDS
+                "DELETE FROM users WHERE USER_ID = ?",          // Из таблицы USERS
+                };
+        for (String query : sqlQuery) {
+            jdbcTemplate.update(query, userId);
+        }
+        return user;
     }
 
     @Override
     public User update(User user) {
-        String sqlQuery = "UPDATE USERS SET EMAIL = ?, LOGIN = ?, NAME = ?, BIRTHDAY = ? WHERE USER_ID = ?";
+        String sqlQuery = "UPDATE users SET EMAIL = ?, LOGIN = ?, NAME = ?, BIRTHDAY = ? WHERE USER_ID = ?";
         if (jdbcTemplate.update(sqlQuery, user.getEmail(),
                             user.getLogin(),
                             user.getName(),
@@ -159,21 +174,23 @@ public class UserDbStorage implements UserStorage{
     }
 
     private User createUser(ResultSet rs) throws SQLException {
-        User user = new User(rs.getString("email"),
+        User user = new User(rs.getInt("user_id"),
+                rs.getString("email"),
                              rs.getString("login"),
-                             rs.getString("name"));
-        user.setBirthday(rs.getDate("birthday").toLocalDate());
-        user.setId(rs.getInt("user_id"));
+                             rs.getString("name"),
+                rs.getDate("birthday").toLocalDate(),
+                applyFriends(rs.getInt("user_id")));
+        return user;
+    }
 
-        // Создаём поле friends
+    private List<Integer> applyFriends (int userId) {
         final String sqlQuery = "SELECT FRIEND_ID FROM FRIENDS WHERE USER_ID = ?";
         final List<Integer> friends = jdbcTemplate.query(sqlQuery, new RowMapper<Integer>() {
             @Override
             public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
                 return rs.getInt("friend_id");
             }
-        }, user.getId());
-        user.setFriends(friends);
-        return user;
+        }, userId);
+        return friends;
     }
 }

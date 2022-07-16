@@ -4,8 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.*;
+
 import java.util.List;
 
 @Service
@@ -21,15 +22,52 @@ public class FilmService {
         this.userStorage = userStorage;
     }
 
+    public List<Film> getAll() {
+        return filmStorage.getAll();
+    }
+
+    public Film getById(int filmId) {
+        return filmStorage.getById(filmId);
+    }
+
+    public Film add(Film film) {
+        return filmStorage.add(film);
+    }
+
+    public Film remove(int filmId) {
+        Film deletedFilm = filmStorage.remove(filmId);
+        log.trace("Запрос на удаление фильма ID {} - DONE.", filmId);
+        return deletedFilm;
+    }
+
+    public Film update(Film film) {
+        return filmStorage.update(film);
+    }
+
+    public List<Genre> getAllGenres() {
+        return filmStorage.getAllGenres();
+    }
+
+    public Genre getGenre(int genreId) {
+        return filmStorage.getGenre(genreId);
+    }
+
+    public List<Mpa> getAllMpa() {
+        return filmStorage.getAllMpa();
+    }
+    public Mpa getMpa(int mpaId) {
+        return filmStorage.getMpa(mpaId);
+    }
+
     public void addLike(int filmId, int userId) {
-        userStorage.getById(userId);    // Проверяем, есть ли такой User
-        filmStorage.getById(filmId);    // Проверяем, есть ли такой Film
+        userStorage.getById(userId);    // Проверяем, есть ли такой User, Film
+        filmStorage.getById(filmId);
         filmStorage.addLike(filmId, userId);
     }
 
     public void removeLike(int filmId, int userId) {
-        userStorage.getById(userId);    // Проверяем, есть ли такой User
-        filmStorage.getById(filmId);    // Проверяем, есть ли такой Film
+        userStorage.getById(userId);    // Проверяем, есть ли такой User, Film
+        filmStorage.getById(filmId);
         filmStorage.removeLike(filmId, userId);
     }
 
