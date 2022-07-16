@@ -22,11 +22,11 @@ public class FilmControllerTest {
     FilmStorage filmStorage = new FilmDbStorage(jdbcTemplate);
     UserStorage userStorage = new UserDbStorage(jdbcTemplate);
     FilmService filmService = new FilmService(filmStorage, userStorage);
-    FilmController controller = new FilmController(filmService, filmStorage);
+    FilmController controller = new FilmController(filmService);
 
     @Test
     void filmWithEmptyName(){
-        Film film = new Film("", LocalDate.of(1980,1,1));
+        Film film = new Film(1,"","desc.", LocalDate.now(),100, null,null);
         ValidationException e = assertThrows(ValidationException.class,
                 new Executable() {
                     @Override
@@ -39,7 +39,7 @@ public class FilmControllerTest {
 
     @Test
     void filmWithTooLongDesc(){
-        Film film = new Film("Name", LocalDate.of(1980,1,1));
+        Film film = new Film(1,"Name", "", LocalDate.now(),100,null,null);
         film.setDescription("Пятеро друзей ( комик-группа «Шарло»), приезжают в город Бризуль. Здесь они хотят " +
                 "разыскать господина Огюста Куглова, который задолжал им деньги, а именно 20 миллионов. о Куглов, " +
                 "который за время «своего отсутствия», стал кандидатом Коломбани.");
@@ -55,7 +55,8 @@ public class FilmControllerTest {
 
     @Test
     void filmWithWrongReleaseDate(){
-        Film film = new Film("Name", LocalDate.of(1895,12,27));
+        Film film = new Film(1,"Name", "desc.", LocalDate.of(1895,12,27),
+                100, null,null);
         ValidationException e = assertThrows(ValidationException.class,
                 new Executable() {
                     @Override
@@ -68,7 +69,7 @@ public class FilmControllerTest {
 
     @Test
     void filmWithNegativeDuration(){
-        Film film = new Film("Name", LocalDate.of(1895,12,28));
+        Film film = new Film(1,"Name", "desc.",LocalDate.now(),-1, null,null);
         film.setDuration(-1);
         ValidationException e = assertThrows(ValidationException.class,
                 new Executable() {

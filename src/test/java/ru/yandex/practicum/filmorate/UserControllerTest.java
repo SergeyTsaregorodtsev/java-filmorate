@@ -21,11 +21,11 @@ public class UserControllerTest {
     JdbcTemplate jdbcTemplate = new JdbcTemplate();
     UserStorage userStorage = new UserDbStorage(jdbcTemplate);
     UserService userService = new UserService(userStorage);
-    UserController controller = new UserController(userService, userStorage);
+    UserController controller = new UserController(userService);
 
     @Test
     void userIncorrectEmail(){
-        User user = new User("wrong-email", "login", "name");
+        User user = new User(1,"wrong-email", "login", "name", LocalDate.now(), null);
         ValidationException e = assertThrows(ValidationException.class,
                 new Executable() {
                     @Override
@@ -38,7 +38,7 @@ public class UserControllerTest {
 
     @Test
     void userIncorrectLogin(){
-        User user = new User("box@email.ru", "log in", "name");
+        User user = new User(1, "box@email.ru", "log in", "name", LocalDate.now(), null);
         ValidationException e = assertThrows(ValidationException.class,
                 new Executable() {
                     @Override
@@ -51,14 +51,14 @@ public class UserControllerTest {
 
     @Test
     void userEmptyName() {
-        User user = new User("box@email.ru", "login", "");
+        User user = new User(1,"box@email.ru", "login", "", LocalDate.now(), null);
         controller.validate(user);
         assertEquals(user.getLogin(), user.getName());
     }
 
     @Test
     void userIncorrectBirthday(){
-        User user = new User("box@email.ru", "login", "name");
+        User user = new User(1,"box@email.ru", "login", "name", LocalDate.now(), null);
         user.setBirthday(LocalDate.MAX);
         ValidationException e = assertThrows(ValidationException.class,
                 new Executable() {

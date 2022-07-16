@@ -35,14 +35,11 @@ class FilmorateApplicationTests {
 
 	@Test @Order(2)
 	public void testAddUser() {
-		User user1 = new User("1@mail.ru", "1", "name1");
-		user1.setBirthday(LocalDate.now());
+		User user1 = new User(1,"1@mail.ru", "1", "name1", LocalDate.now(), null);
 		userStorage.add(user1);
-		User user2 = new User("2@mail.ru", "2", "name2");
-		user2.setBirthday(LocalDate.now());
+		User user2 = new User(2,"2@mail.ru", "2", "name2",LocalDate.now(), null);
 		userStorage.add(user2);
-		User user3 = new User("3@mail.ru", "3", "name3");
-		user3.setBirthday(LocalDate.now());
+		User user3 = new User(3,"3@mail.ru", "3", "name3",LocalDate.now(), null);
 		userStorage.add(user3);
 		User newUser = userStorage.getById(3);
 		assertNotNull(newUser);
@@ -60,9 +57,7 @@ class FilmorateApplicationTests {
 
 	@Test @Order(4)
 	public void testUpdateUser() {
-		User updatedUser = new User("2@mail.ru", "2", "name2new");
-		updatedUser.setBirthday(LocalDate.now());
-		updatedUser.setId(2);
+		User updatedUser = new User(2,"2@mail.ru", "2", "name2new",LocalDate.now(), null);
 		userStorage.update(updatedUser);
 		User user = userStorage.getById(2);
 		assertNotNull(user);
@@ -128,14 +123,10 @@ class FilmorateApplicationTests {
 	@Test @Order(11)
 	public void testAddFilm() {
 		LocalDate releaseDate = LocalDate.now();
-		Film film1 = new Film("name1", releaseDate);
-		film1.setDescription("film1Desc.");
-		film1.setDuration(100);
+		Film film1 = new Film(1,"name1", "film1Desc.", releaseDate, 100,null,null);
 		film1.setMpa(new Mpa(1,"Комедия"));
 		filmStorage.add(film1);
-		Film film2 = new Film("name2", releaseDate);
-		film2.setDescription("film2Desc.");
-		film2.setDuration(100);
+		Film film2 = new Film(2,"name2", "film2Desc.", releaseDate,100, null,null);
 		film2.setMpa(new Mpa(2,"Драма"));
 		filmStorage.add(film2);
 		Film newFilm = filmStorage.getById(2);
@@ -174,11 +165,8 @@ class FilmorateApplicationTests {
 	@Test @Order(15)
 	public void testUpdate() {
 		LocalDate releaseDate = LocalDate.now();
-		Film updatedFilm = new Film("name1upd", releaseDate);
-		updatedFilm.setDescription("film1Desc.");
-		updatedFilm.setDuration(100);
+		Film updatedFilm = new Film(1,"name1upd", "description",releaseDate, 100, null,null);
 		updatedFilm.setMpa(new Mpa(1,"Комедия"));
-		updatedFilm.setId(1);
 		filmStorage.update(updatedFilm);
 		Film film = filmStorage.getById(1);
 		assertNotNull(film);
