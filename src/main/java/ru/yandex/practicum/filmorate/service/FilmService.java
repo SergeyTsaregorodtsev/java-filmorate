@@ -2,14 +2,14 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.*;
 
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @Slf4j
@@ -18,43 +18,77 @@ public class FilmService {
     private final UserStorage userStorage;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
+                       @Qualifier("userDbStorage") UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
     }
 
+    public List<Film> getAll() {
+        return filmStorage.getAll();
+    }
+
+    public Film getById(int filmId) {
+        return filmStorage.getById(filmId);
+    }
+
+    public Film add(Film film) {
+        validate(film);
+        return filmStorage.add(film);
+    }
+
+    public Film remove(int filmId) {
+        Film deletedFilm = filmStorage.remove(filmId);
+        log.trace("Запрос на удаление фильма ID {} - DONE.", filmId);
+        return deletedFilm;
+    }
+
+    public Film update(Film film) {
+        validate(film);
+        return filmStorage.update(film);
+    }
+
+    public List<Genre> getAllGenres() {
+        return filmStorage.getAllGenres();
+    }
+
+    public Genre getGenre(int genreId) {
+        return filmStorage.getGenre(genreId);
+    }
+
+    public List<Mpa> getAllMpa() {
+        return filmStorage.getAllMpa();
+    }
+    public Mpa getMpa(int mpaId) {
+        return filmStorage.getMpa(mpaId);
+    }
+
     public void addLike(int filmId, int userId) {
-        Film film = filmStorage.getById(filmId);
-        if (userStorage.getById(userId) != null) {
-            film.getLikes().add(userId);
-        }
-        log.trace("Запрос на добавление лайка от пользователя ID {} - DONE.", userId);
+        userStorage.getById(userId);    // Проверяем, есть ли такой User, Film
+        filmStorage.getById(filmId);
+        filmStorage.addLike(filmId, userId);
     }
 
     public void removeLike(int filmId, int userId) {
-        Film film = filmStorage.getById(filmId);
-        Set<Integer> likes = film.getLikes();
-        if (userStorage.getById(userId) != null) {
-            likes.remove(userId);
-            log.trace("Запрос на удаление лайка от пользователя ID {} - DONE.", userId);
-        }
+        userStorage.getById(userId);    // Проверяем, есть ли такой User, Film
+        filmStorage.getById(filmId);
+        filmStorage.removeLike(filmId, userId);
     }
 
-    public List<Film> getFavoriteFilms(int count) {
-        List<Film> favoriteFilms = new ArrayList<>(filmStorage.get());
-        if (count >= favoriteFilms.size()) {
-            count = favoriteFilms.size();
-        }
-        Comparator<Film> filmComparator = new Comparator<>() {
-            @Override
-            public int compare(Film film1, Film film2) {
-                int film1Likes = film1.getLikes().size();
-                int film2Likes = film2.getLikes().size();
-                return film2Likes - film1Likes;
-            }
-        };
-        favoriteFilms.sort(filmComparator);
+    public List<Film> getFavorite(int count) {
+        List<Film> favorite = filmStorage.getFavorite(count);
         log.trace("Запрос на получение {} фильмов с наибольшим количеством лайков - DONE.", count);
-        return favoriteFilms.subList(0, count);
+        return favorite;
+    }
+
+    public void validate(Film film) {
+        String description = film.getDescription();
+        LocalDate releaseDate = film.getReleaseDate();
+        if (description == null) {
+            film.setDescription("");
+        }
+        if (releaseDate.isBefore(LocalDate.of(1895,12,28))) {
+            throw new ValidationException("Дата релиза - не раньше 28 декабря 1895 года.");
+        }
     }
 }

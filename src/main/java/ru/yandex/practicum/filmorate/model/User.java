@@ -1,20 +1,14 @@
 package ru.yandex.practicum.filmorate.model;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import javax.validation.constraints.*;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NonNull;
-
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.PastOrPresent;
-import javax.validation.constraints.Pattern;
 
 @Data
+@AllArgsConstructor
 public class User {
     private int id;
     @Email
@@ -22,10 +16,9 @@ public class User {
     private final String email;
     @NotBlank @Pattern(regexp = "^\\S*$")   // Любое количество непробельных символов
     private final String login;
-    @NonNull
+    @NotNull
     private String name;
     @PastOrPresent(message = "Дата рождения не может быть в будущем.")
     private LocalDate birthday;
-    private final Set<Integer> friends = new HashSet<>();
-    private final Map<Integer,FriendStatus> friendStatus = new HashMap<>();
+    private List<Integer> friends = new ArrayList<>();
 }

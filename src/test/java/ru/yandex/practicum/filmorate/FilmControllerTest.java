@@ -1,80 +1,61 @@
 package ru.yandex.practicum.filmorate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.web.servlet.MockMvc;
+
 import ru.yandex.practicum.filmorate.controller.FilmController;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.*;
 
-import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+
 
 @SpringBootTest
+@AutoConfigureMockMvc
 public class FilmControllerTest {
-    FilmStorage filmStorage = new InMemoryFilmStorage();
-    UserStorage userStorage = new InMemoryUserStorage();
-    FilmService filmService = new FilmService(filmStorage, userStorage);
-    FilmController controller = new FilmController(filmService, filmStorage);
+    FilmService service;
+    FilmController controller;
+    MockMvc mvc;
+    ObjectMapper mapper;
 
-    @Test
-    void filmWithEmptyName(){
-        Film film = new Film("", LocalDate.of(1980,1,1));
-        ValidationException e = assertThrows(ValidationException.class,
-                new Executable() {
-                    @Override
-                    public void execute() throws IOException, InterruptedException {
-                        controller.validate(film);
-                    }
-                });
-        assertEquals("Название фильма не может быть пустым.", e.getMessage());
+    @Autowired
+    public FilmControllerTest(FilmService service, FilmController controller, MockMvc mvc, ObjectMapper mapper) {
+        this.service = service;
+        this.controller = controller;
+        this.mvc = mvc;
+        this.mapper = mapper;
     }
 
+    @DisplayName("Проверка на создание фильма")
+    @DirtiesContext
     @Test
-    void filmWithTooLongDesc(){
-        Film film = new Film("Name", LocalDate.of(1980,1,1));
-        film.setDescription("Пятеро друзей ( комик-группа «Шарло»), приезжают в город Бризуль. Здесь они хотят " +
-                "разыскать господина Огюста Куглова, который задолжал им деньги, а именно 20 миллионов. о Куглов, " +
-                "который за время «своего отсутствия», стал кандидатом Коломбани.");
-        ValidationException e = assertThrows(ValidationException.class,
-                new Executable() {
-                    @Override
-                    public void execute() throws IOException, InterruptedException {
-                        controller.validate(film);
-                    }
-                });
-        assertEquals("Максимальная длина описания - 200 символов.", e.getMessage());
+    public void testAddFilm () throws Exception {
+        Film film = new Film (1,"name1", "film1Desc.", LocalDate.now(), 100,null,null);
+        film.setMpa(new Mpa(1,"Комедия"));
+        postWithOkRequest (film, "/films");
+        List<Film> films = service.getAll ();
+        Assertions.assertEquals (1, films.size ());
     }
 
-    @Test
-    void filmWithWrongReleaseDate(){
-        Film film = new Film("Name", LocalDate.of(1895,12,27));
-        ValidationException e = assertThrows(ValidationException.class,
-                new Executable() {
-                    @Override
-                    public void execute() throws IOException, InterruptedException {
-                        controller.validate(film);
-                    }
-                });
-        assertEquals("Дата релиза - не раньше 28 декабря 1895 года.", e.getMessage());
-    }
-
-    @Test
-    void filmWithNegativeDuration(){
-        Film film = new Film("Name", LocalDate.of(1895,12,28));
-        film.setDuration(-1);
-        ValidationException e = assertThrows(ValidationException.class,
-                new Executable() {
-                    @Override
-                    public void execute() throws IOException, InterruptedException {
-                        controller.validate(film);
-                    }
-                });
-        assertEquals("Продолжительность фильма должна быть положительной.", e.getMessage());
+    //Отправка Post запроса с ожиданием кода 200
+    private <T> void postWithOkRequest (T object, String path) throws Exception {
+        mvc.perform(post(path)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(object)))
+                .andExpect(status().isOk())
+                .andReturn();
     }
 }

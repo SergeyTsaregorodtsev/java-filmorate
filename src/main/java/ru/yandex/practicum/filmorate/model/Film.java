@@ -1,31 +1,26 @@
 package ru.yandex.practicum.filmorate.model;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import javax.validation.constraints.*;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NonNull;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.PastOrPresent;
-import javax.validation.constraints.PositiveOrZero;
-import javax.validation.constraints.Size;
 
 @Data
+@AllArgsConstructor
 public class Film {
     private int id;
-    @NotBlank
-    @NonNull
+    @NotBlank(message = "Название фильма не может быть пустым.")
+    @NotNull
     private String name;
     @Size(max = 200, message = "Максимальная длина описания - 200 символов.")
     private String description;
-    @NonNull
+    @NotNull
     @PastOrPresent(message = "Дата релиза фильма не может быть в будущем.")
     private LocalDate releaseDate;
     @PositiveOrZero(message = "Продолжительность фильма должна быть положительной.")
     private int duration;
-    private final Set<Integer> likes = new HashSet<>();
-    private final Genre genre;
-    private final MpaRating mpaRating;
+    private Set<Genre> genres = new HashSet<>();
+    private Mpa mpa;
 }
